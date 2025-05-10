@@ -1,62 +1,64 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import RadioPlayerPage from './pages/RadioPlayerPage';
+import FavoritesPage from './pages/FavoritesPage';
+import { AuthProvider } from './contexts/AuthContext';
+import { AppProvider } from './contexts/AppContext';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
+import MainLayout from './layouts/MainLayout';
+import Index from './pages/Index';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import { AppProvider } from "@/contexts/AppContext";
-import { AudioProvider } from "@/contexts/AudioContext";
-import { AuthProvider } from "@/contexts/AuthContext";
-
-import { MainLayout } from "@/layouts/MainLayout";
-import { AuthLayout } from "@/layouts/AuthLayout";
-
-import HomePage from "@/pages/HomePage";
-import DiscoverPage from "@/pages/DiscoverPage";
-import FavoritesPage from "@/pages/FavoritesPage";
-import AdminPage from "@/pages/AdminPage";
-import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
-import StationPage from "@/pages/StationPage";
-import NotFound from "@/pages/NotFound";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <AppProvider>
-          <AudioProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                {/* Main routes with layout */}
-                <Route element={<MainLayout />}>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/discover" element={<DiscoverPage />} />
-                  <Route path="/favorites" element={<FavoritesPage />} />
-                  <Route path="/admin" element={<AdminPage />} />
-                  <Route path="/station/:stationId" element={<StationPage />} />
-                </Route>
-                
-                {/* Auth routes */}
-                <Route element={<AuthLayout />}>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                </Route>
-                
-                {/* Catch-all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </AudioProvider>
-        </AppProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppProvider>
+        <Router>
+          <Routes>
+            <Route path="/index" element={<Index />} />
+            <Route path="/" element={
+              <MainLayout>
+                <HomePage />
+              </MainLayout>
+            } />
+            <Route path="/radio/:stationId" element={
+              <MainLayout>
+                <RadioPlayerPage />
+              </MainLayout>
+            } />
+            <Route path="/favorites" element={
+              <MainLayout>
+                <FavoritesPage />
+              </MainLayout>
+            } />
+            <Route path="/login" element={
+              <MainLayout>
+                <LoginPage />
+              </MainLayout>
+            } />
+            <Route path="/register" element={
+              <MainLayout>
+                <RegisterPage />
+              </MainLayout>
+            } />
+             <Route path="/profile" element={
+              <MainLayout>
+                <ProfilePage />
+              </MainLayout>
+            } />
+            <Route path="/admin" element={
+              <MainLayout>
+                <AdminDashboardPage />
+              </MainLayout>
+            } />
+          </Routes>
+        </Router>
+      </AppProvider>
+    </AuthProvider>
+  );
+};
 
 export default App;

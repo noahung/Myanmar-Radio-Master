@@ -1,6 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
+import { supabase } from '../integrations/supabase/client';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -16,100 +19,198 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // This will be replaced with Supabase auth logic
+  // Fetch user profile and check admin status
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      // Check if user is admin
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+
+      const isUserAdmin = !!roleData;
+
+      // Get favorites
+      const { data: favorites } = await supabase
+        .from('user_favorites')
+        .select('station_id')
+        .eq('user_id', userId);
+
+      const favoriteIds = favorites ? favorites.map(fav => fav.station_id) : [];
+
+      // Update user state with combined profile info
+      setUser({
+        id: userId,
+        email: profile?.email || '',
+        name: profile?.name || '',
+        avatar: profile?.avatar_url || '',
+        role: isUserAdmin ? 'admin' : 'user',
+        favorites: favoriteIds,
+      });
+
+      setIsAdmin(isUserAdmin);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   useEffect(() => {
-    // Simulate auth state check
-    const checkAuth = async () => {
-      try {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-          setIsAdmin(parsedUser.role === 'admin');
+    const setupAuth = async () => {
+      setIsLoading(true);
+      
+      // Set up auth state listener FIRST
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (event, currentSession) => {
+          setSession(currentSession);
+          const supabaseUser = currentSession?.user;
+
+          if (event === 'SIGNED_IN' && supabaseUser) {
+            // Defer user profile fetch to avoid deadlock
+            setTimeout(() => {
+              fetchUserProfile(supabaseUser.id);
+            }, 0);
+            setIsLoading(false);
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            setIsAdmin(false);
+            setIsLoading(false);
+          }
         }
-      } catch (error) {
-        console.error('Auth check error:', error);
-      } finally {
-        setIsLoading(false);
+      );
+
+      // THEN check for existing session
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      setSession(initialSession);
+      
+      if (initialSession?.user) {
+        await fetchUserProfile(initialSession.user.id);
       }
+      
+      setIsLoading(false);
+
+      return () => {
+        subscription.unsubscribe();
+      };
     };
 
-    checkAuth();
+    setupAuth();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // This will be replaced with Supabase auth
     setIsLoading(true);
     try {
-      // Mock user for now
-      const mockUser: User = {
-        id: '1',
+      const { error } = await supabase.auth.signInWithPassword({
         email,
-        name: email.split('@')[0],
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + email,
-        role: email.includes('admin') ? 'admin' : 'user',
-        favorites: [],
-      };
+        password,
+      });
       
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setIsAdmin(mockUser.role === 'admin');
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!",
+      });
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const signInWithGoogle = async () => {
-    // This will be replaced with Supabase auth
     setIsLoading(true);
     try {
-      // Mock user for demo
-      const mockUser: User = {
-        id: '2',
-        email: 'google@example.com',
-        name: 'Google User',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=google',
-        role: 'user',
-        favorites: [],
-      };
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        }
+      });
       
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setIsAdmin(mockUser.role === 'admin');
+      if (error) {
+        toast({
+          title: "Google Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('Google sign in error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string) => {
-    // This will be replaced with Supabase auth
     setIsLoading(true);
     try {
-      // Mock user for demo
-      const mockUser: User = {
-        id: '3',
+      const { error } = await supabase.auth.signUp({
         email,
-        name: email.split('@')[0],
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + email,
-        role: 'user',
-        favorites: [],
-      };
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
+      });
       
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
+      if (error) {
+        toast({
+          title: "Registration Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      toast({
+        title: "Registration Successful",
+        description: "Please check your email for confirmation.",
+      });
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const signOut = async () => {
-    // This will be replaced with Supabase auth
-    localStorage.removeItem('user');
-    setUser(null);
-    setIsAdmin(false);
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged Out",
+        description: "You have been signed out successfully.",
+      });
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: "Logout Failed",
+        description: "An error occurred while signing out.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
