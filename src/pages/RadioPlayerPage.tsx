@@ -3,11 +3,15 @@ import React, { useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useAppContext } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, Heart, HeartOff } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const RadioPlayerPage: React.FC = () => {
   const { stationId } = useParams<{ stationId: string }>();
-  const { stations, currentStation, isPlaying, setCurrentStation, togglePlay } = useAppContext();
+  const { stations, currentStation, isPlaying, setCurrentStation, togglePlay, toggleFavorite, isFavorite } = useAppContext();
+  const { user } = useAuth();
+  const { toast } = useToast();
   
   useEffect(() => {
     if (stationId) {
@@ -30,6 +34,20 @@ const RadioPlayerPage: React.FC = () => {
   }
   
   const isActiveStation = currentStation?.id === station.id;
+  const isStationFavorite = isFavorite(station.id);
+  
+  const handleFavoriteToggle = async () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to save favorites",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    await toggleFavorite(station.id);
+  };
   
   return (
     <div className="space-y-8">
@@ -54,7 +72,7 @@ const RadioPlayerPage: React.FC = () => {
             <p className="mt-4">{station.description}</p>
           )}
           
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap gap-3 justify-center md:justify-start">
             <Button 
               size="lg"
               className="gap-2"
@@ -74,6 +92,19 @@ const RadioPlayerPage: React.FC = () => {
                 <>
                   <Play className="h-5 w-5" /> Play
                 </>
+              )}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10"
+              onClick={handleFavoriteToggle}
+            >
+              {isStationFavorite ? (
+                <Heart className="h-5 w-5 fill-primary text-primary" />
+              ) : (
+                <Heart className="h-5 w-5" />
               )}
             </Button>
           </div>
