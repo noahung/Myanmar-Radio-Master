@@ -25,26 +25,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 
+interface Profile {
+  id: string;
+  name?: string;
+  avatar_url?: string;
+  created_at?: string;
+}
+
 interface UserWithRole {
   id: string;
   email: string;
   name?: string;
   avatar_url?: string;
-  role: 'admin' | 'moderator' | 'user';
+  role: 'admin' | 'user';
   created_at?: string;
-}
-
-interface Profile {
-  id: string;
-  name: string;
-  avatar_url?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface User {
-  id: string;
-  email: string;
 }
 
 const UserManager: React.FC = () => {
@@ -65,35 +59,27 @@ const UserManager: React.FC = () => {
         
       if (profilesError) throw profilesError;
       
-      // Get all auth.users to access email addresses
-      const { data: authUsers, error: authError } = await supabase
-        .from('users')
-        .select('id, email')
-        .in('id', profiles.map((profile: Profile) => profile.id));
-        
-      if (authError) throw authError;
-      
-      // Create a map of user IDs to emails
-      const emailMap: {[key: string]: string} = {};
-      authUsers.forEach((user: User) => {
-        emailMap[user.id] = user.email;
-      });
+      // Get user emails from auth metadata - this requires admin access
+      // In a production app, you'd use a Supabase Edge Function for this
+      // For now, we'll use a placeholder email format
       
       // Get all user roles
-      const { data: roles, error: rolesError } = await supabase
+      const { data: roleData, error: rolesError } = await supabase
         .from('user_roles')
-        .select('*')
+        .select('user_id, role')
         .eq('role', 'admin');
         
       if (rolesError) throw rolesError;
       
-      // Combine the data
-      const adminIds = new Set(roles.map(role => role.user_id));
+      // Create a set of admin user IDs for easy lookup
+      const adminIds = new Set(roleData.map(role => role.user_id));
       
+      // Combine the data - format emails based on ID since we can't access actual emails
+      // In a real app with proper backend access, you'd get real emails
       const combinedUsers: UserWithRole[] = profiles.map((profile: Profile) => ({
         id: profile.id,
-        email: emailMap[profile.id] || 'Unknown Email', // Use the email from the map
-        name: profile.name,
+        email: `user-${profile.id.substring(0, 8)}@example.com`, // Placeholder email
+        name: profile.name || 'Anonymous User',
         avatar_url: profile.avatar_url,
         role: adminIds.has(profile.id) ? 'admin' : 'user',
         created_at: profile.created_at

@@ -1,109 +1,65 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppContext } from '@/contexts/AppContext';
-import { RadioStation } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 const RadioPlayerPage: React.FC = () => {
   const { stationId } = useParams<{ stationId: string }>();
-  const { setCurrentStation } = useAppContext();
-  const [station, setStation] = useState<RadioStation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
+  const { stations, setCurrentStation } = useAppContext();
+  
   useEffect(() => {
-    const fetchStation = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('radio_stations')
-          .select('*')
-          .eq('id', stationId)
-          .single();
-
-        if (error) throw error;
-
-        // Map DB fields to our RadioStation type
-        const mappedStation: RadioStation = {
-          id: data.id,
-          name: data.name,
-          streamUrl: data.stream_url,
-          imageUrl: data.image_url || undefined,
-          description: data.description || undefined,
-          category: data.category,
-          isFeatured: data.is_featured || false,
-          listeners: data.listeners || 0,
-        };
-        
-        setStation(mappedStation);
-        setCurrentStation(mappedStation);
-      } catch (error: any) {
-        console.error("Error fetching station:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load radio station",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (stationId) {
-      fetchStation();
+      const station = stations.find(s => s.id === stationId);
+      if (station) {
+        setCurrentStation(station);
+      }
     }
-
-    // Cleanup function
+    
     return () => {
-      // We don't set currentStation to null here because we want the player to continue
-      // This allows the music to keep playing when navigating away from the page
+      // When component unmounts, don't stop the player
+      // This allows for continuous playback when navigating between pages
     };
-  }, [stationId, setCurrentStation]);
-
-  if (loading) {
-    return <div className="flex justify-center items-center py-12">Loading station...</div>;
+  }, [stationId, stations, setCurrentStation]);
+  
+  const currentStation = stations.find(s => s.id === stationId);
+  
+  if (!currentStation) {
+    return <div className="p-8 text-center">Station not found</div>;
   }
-
-  if (!station) {
-    return <div className="text-center py-12">Station not found</div>;
-  }
-
+  
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="md:w-1/3">
-          <div className="aspect-square rounded-lg overflow-hidden shadow-lg bg-card">
-            {station.imageUrl ? (
-              <img 
-                src={station.imageUrl} 
-                alt={station.name} 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/50 to-primary/10">
-                <span className="text-4xl font-bold text-primary/80">{station.name[0]}</span>
-              </div>
-            )}
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+        {currentStation.imageUrl ? (
+          <img
+            src={currentStation.imageUrl}
+            alt={currentStation.name}
+            className="w-48 h-48 object-cover rounded-lg shadow-md"
+          />
+        ) : (
+          <div className="w-48 h-48 bg-muted rounded-lg flex items-center justify-center">
+            <span className="text-muted-foreground">No Image</span>
           </div>
-        </div>
+        )}
         
-        <div className="md:w-2/3">
-          <h1 className="text-3xl font-bold mb-3">{station.name}</h1>
+        <div className="flex-1 text-center md:text-left">
+          <h1 className="text-3xl font-bold">{currentStation.name}</h1>
+          <p className="text-muted-foreground mt-2">{currentStation.category}</p>
           
-          <div className="bg-muted inline-block px-3 py-1 rounded-full text-sm font-medium mb-4">
-            {station.category}
-          </div>
-          
-          {station.description && (
-            <p className="text-muted-foreground mb-6">{station.description}</p>
+          {currentStation.description && (
+            <p className="mt-4">{currentStation.description}</p>
           )}
           
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <span>{station.listeners} listeners</span>
+          <div className="mt-6">
+            <div className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
+              <span>{currentStation.listeners || 0} listeners</span>
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* Player is rendered via the MainLayout component */}
+      <div className="h-12 md:hidden"></div>
     </div>
   );
 };
