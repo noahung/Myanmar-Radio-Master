@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 import { supabase } from '../integrations/supabase/client';
-import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Fetch user profile and check admin status
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string, userEmail: string) => {
     try {
       // Get user profile
       const { data: profile } = await supabase
@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Update user state with combined profile info
       setUser({
         id: userId,
-        email: profile?.email || '',
+        email: userEmail, // Use the email from the session
         name: profile?.name || '',
         avatar: profile?.avatar_url || '',
         role: isUserAdmin ? 'admin' : 'user',
@@ -80,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (event === 'SIGNED_IN' && supabaseUser) {
             // Defer user profile fetch to avoid deadlock
             setTimeout(() => {
-              fetchUserProfile(supabaseUser.id);
+              fetchUserProfile(supabaseUser.id, supabaseUser.email || '');
             }, 0);
             setIsLoading(false);
           } else if (event === 'SIGNED_OUT') {
@@ -96,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(initialSession);
       
       if (initialSession?.user) {
-        await fetchUserProfile(initialSession.user.id);
+        await fetchUserProfile(initialSession.user.id, initialSession.user.email || '');
       }
       
       setIsLoading(false);

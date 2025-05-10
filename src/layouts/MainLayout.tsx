@@ -1,13 +1,12 @@
 
 import React from 'react';
-import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { Player } from '@/components/Player';
 import { useAppContext } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-export const MainLayout: React.FC = () => {
+export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentStation } = useAppContext();
   
   return (
@@ -20,7 +19,7 @@ export const MainLayout: React.FC = () => {
             "max-w-6xl mx-auto pb-24",
             currentStation ? "md:pb-28" : "pb-6"
           )}>
-            <Outlet />
+            {children}
           </div>
         </ScrollArea>
         

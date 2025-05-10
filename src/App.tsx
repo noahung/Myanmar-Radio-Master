@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
@@ -8,7 +9,7 @@ import { AppProvider } from './contexts/AppContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
-import MainLayout from './layouts/MainLayout';
+import { MainLayout } from './layouts/MainLayout';
 import Index from './pages/Index';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 

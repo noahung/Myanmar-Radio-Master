@@ -27,11 +27,24 @@ import { Input } from '@/components/ui/input';
 
 interface UserWithRole {
   id: string;
-  email?: string;
+  email: string;
   name?: string;
   avatar_url?: string;
   role: 'admin' | 'moderator' | 'user';
   created_at?: string;
+}
+
+interface Profile {
+  id: string;
+  name: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface User {
+  id: string;
+  email: string;
 }
 
 const UserManager: React.FC = () => {
@@ -52,7 +65,21 @@ const UserManager: React.FC = () => {
         
       if (profilesError) throw profilesError;
       
-      // Then, get all user roles
+      // Get all auth.users to access email addresses
+      const { data: authUsers, error: authError } = await supabase
+        .from('users')
+        .select('id, email')
+        .in('id', profiles.map((profile: Profile) => profile.id));
+        
+      if (authError) throw authError;
+      
+      // Create a map of user IDs to emails
+      const emailMap: {[key: string]: string} = {};
+      authUsers.forEach((user: User) => {
+        emailMap[user.id] = user.email;
+      });
+      
+      // Get all user roles
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*')
@@ -63,9 +90,9 @@ const UserManager: React.FC = () => {
       // Combine the data
       const adminIds = new Set(roles.map(role => role.user_id));
       
-      const combinedUsers: UserWithRole[] = profiles.map(profile => ({
+      const combinedUsers: UserWithRole[] = profiles.map((profile: Profile) => ({
         id: profile.id,
-        email: profile.email,
+        email: emailMap[profile.id] || 'Unknown Email', // Use the email from the map
         name: profile.name,
         avatar_url: profile.avatar_url,
         role: adminIds.has(profile.id) ? 'admin' : 'user',
@@ -74,6 +101,7 @@ const UserManager: React.FC = () => {
       
       setUsers(combinedUsers);
     } catch (error: any) {
+      console.error("Error fetching users:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to fetch users",
