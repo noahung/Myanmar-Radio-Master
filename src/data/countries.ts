@@ -1,0 +1,25 @@
+
+export const countries = [
+  { name: 'Australia', code: 'AU', emoji: '🇦🇺' },
+  { name: 'Canada', code: 'CA', emoji: '🇨🇦' },
+  { name: 'China', code: 'CN', emoji: '🇨🇳' },
+  { name: 'France', code: 'FR', emoji: '🇫🇷' },
+  { name: 'Germany', code: 'DE', emoji: '🇩🇪' },
+  { name: 'India', code: 'IN', emoji: '🇮🇳' },
+  { name: 'Indonesia', code: 'ID', emoji: '🇮🇩' },
+  { name: 'Japan', code: 'JP', emoji: '🇯🇵' },
+  { name: 'Malaysia', code: 'MY', emoji: '🇲🇾' },
+  { name: 'Myanmar', code: 'MM', emoji: '🇲🇲' },
+  { name: 'Netherlands', code: 'NL', emoji: '🇳🇱' },
+  { name: 'New Zealand', code: 'NZ', emoji: '🇳🇿' },
+  { name: 'Norway', code: 'NO', emoji: '🇳🇴' },
+  { name: 'Philippines', code: 'PH', emoji: '🇵🇭' },
+  { name: 'Singapore', code: 'SG', emoji: '🇸🇬' },
+  { name: 'South Korea', code: 'KR', emoji: '🇰🇷' },
+  { name: 'Sweden', code: 'SE', emoji: '🇸🇪' },
+  { name: 'Switzerland', code: 'CH', emoji: '🇨🇭' },
+  { name: 'Thailand', code: 'TH', emoji: '🇹🇭' },
+  { name: 'United Kingdom', code: 'GB', emoji: '🇬🇧' },
+  { name: 'United States', code: 'US', emoji: '🇺🇸' },
+  { name: 'Vietnam', code: 'VN', emoji: '🇻🇳' }
+];

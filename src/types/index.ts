@@ -1,4 +1,3 @@
-
 export interface RadioStation {
   id: string;
   name: string;
@@ -15,8 +14,9 @@ export interface User {
   email: string;
   name?: string;
   avatar?: string;
-  role: 'user' | 'admin';
-  favorites: string[]; // Radio station IDs
+  role?: string;
+  favorites?: string[];
+  country?: string;
 }
 
 export interface StationComment {

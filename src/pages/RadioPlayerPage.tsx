@@ -1,11 +1,13 @@
 
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
 import { useAppContext } from '@/contexts/AppContext';
+import { Button } from '@/components/ui/button';
+import { Play, Pause } from 'lucide-react';
 
 const RadioPlayerPage: React.FC = () => {
   const { stationId } = useParams<{ stationId: string }>();
-  const { stations, setCurrentStation } = useAppContext();
+  const { stations, currentStation, isPlaying, setCurrentStation, togglePlay } = useAppContext();
   
   useEffect(() => {
     if (stationId) {
@@ -21,19 +23,21 @@ const RadioPlayerPage: React.FC = () => {
     };
   }, [stationId, stations, setCurrentStation]);
   
-  const currentStation = stations.find(s => s.id === stationId);
+  const station = stations.find(s => s.id === stationId);
   
-  if (!currentStation) {
-    return <div className="p-8 text-center">Station not found</div>;
+  if (!station) {
+    return <Navigate to="/discover" />;
   }
+  
+  const isActiveStation = currentStation?.id === station.id;
   
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-        {currentStation.imageUrl ? (
+        {station.imageUrl ? (
           <img
-            src={currentStation.imageUrl}
-            alt={currentStation.name}
+            src={station.imageUrl}
+            alt={station.name}
             className="w-48 h-48 object-cover rounded-lg shadow-md"
           />
         ) : (
@@ -43,23 +47,44 @@ const RadioPlayerPage: React.FC = () => {
         )}
         
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-3xl font-bold">{currentStation.name}</h1>
-          <p className="text-muted-foreground mt-2">{currentStation.category}</p>
+          <h1 className="text-3xl font-bold">{station.name}</h1>
+          <p className="text-muted-foreground mt-2">{station.category}</p>
           
-          {currentStation.description && (
-            <p className="mt-4">{currentStation.description}</p>
+          {station.description && (
+            <p className="mt-4">{station.description}</p>
           )}
           
           <div className="mt-6">
+            <Button 
+              size="lg"
+              className="gap-2"
+              onClick={() => {
+                if (isActiveStation) {
+                  togglePlay();
+                } else {
+                  setCurrentStation(station);
+                }
+              }}
+            >
+              {isActiveStation && isPlaying ? (
+                <>
+                  <Pause className="h-5 w-5" /> Pause
+                </>
+              ) : (
+                <>
+                  <Play className="h-5 w-5" /> Play
+                </>
+              )}
+            </Button>
+          </div>
+          
+          <div className="mt-6">
             <div className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-              <span>{currentStation.listeners || 0} listeners</span>
+              <span>{station.listeners || 0} listeners</span>
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Player is rendered via the MainLayout component */}
-      <div className="h-12 md:hidden"></div>
     </div>
   );
 };
