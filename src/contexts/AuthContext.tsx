@@ -59,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: isUserAdmin ? 'admin' : 'user',
         favorites: favoriteIds,
         country: profile?.country || '',
+        status: profile?.status || '',
       });
 
       setIsAdmin(isUserAdmin);

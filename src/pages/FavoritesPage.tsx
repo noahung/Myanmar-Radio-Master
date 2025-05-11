@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { StationGrid } from '@/components/StationGrid';
 import { useAppContext } from '@/contexts/AppContext';
@@ -54,7 +53,7 @@ const FavoritesPage: React.FC = () => {
       {favoriteStations.length === 0 && (
         <div className="text-center pt-8">
           <Button asChild>
-            <Link to="/discover">Discover Stations</Link>
+            <Link to="/">Browse Stations</Link>
           </Button>
         </div>
       )}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, Heart, LogOut, LogIn, Menu, X } from 'lucide-react';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { countries } from '@/data/countries';
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
@@ -29,7 +29,6 @@ export const Sidebar: React.FC = () => {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: Search, label: 'Discover', path: '/discover' },
   ];
 
   if (user) {
@@ -44,10 +43,7 @@ export const Sidebar: React.FC = () => {
     <>
       <div className="p-6">
         <Link to="/" className="flex items-center gap-2 mb-6" onClick={closeSidebar}>
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">MR</span>
-          </div>
-          <h1 className="text-xl font-bold">Myanmar Radio</h1>
+          <img src="/RadioM-logo.png" alt="RadioM Logo" className="w-16 h-16 object-contain" />
         </Link>
         <nav className="space-y-2">
           {navItems.map((item) => (
@@ -71,7 +67,7 @@ export const Sidebar: React.FC = () => {
       <div className="mt-auto p-6">
         {user ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 px-4">
+            <Link to="/profile" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-secondary/50 transition-colors">
               <div className="w-10 h-10 rounded-full overflow-hidden">
                 <img 
                   src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} 
@@ -80,10 +76,23 @@ export const Sidebar: React.FC = () => {
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{user.name || 'User'}</p>
+                <p className="font-medium truncate flex items-center gap-2">
+                  {user.name || 'User'}
+                  {user.country && (
+                    <span title={user.country} className="ml-1">
+                      {(() => {
+                        const c = countries.find(c => c.name === user.country);
+                        return c ? c.emoji : '';
+                      })()}
+                    </span>
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                {user.status && (
+                  <p className="text-xs text-muted-foreground truncate">{user.status}</p>
+                )}
               </div>
-            </div>
+            </Link>
             <Button 
               variant="outline" 
               className="w-full flex items-center gap-2 justify-center"

@@ -1,5 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -21,19 +21,23 @@ const ProfilePage: React.FC = () => {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const [name, setName] = useState(user?.name || '');
-  const [country, setCountry] = useState(user?.country || '');
+  const [country, setCountry] = useState(user?.country ? user.country : 'not_specified');
+  const [status, setStatus] = useState(user?.status || '');
   const [isUploading, setIsUploading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   
   useEffect(() => {
+    console.log('ProfilePage render, user:', user, 'isLoading:', isLoading);
     if (user) {
       setName(user.name || '');
-      setCountry(user.country || '');
+      setCountry(user.country ? user.country : 'not_specified');
+      setStatus(user.status || '');
     }
-  }, [user]);
+  }, [user, isLoading]);
   
   // Redirect if not logged in
   if (!isLoading && !user) {
+    console.warn('No user found in ProfilePage');
     return <Navigate to="/login" />;
   }
   
@@ -44,11 +48,13 @@ const ProfilePage: React.FC = () => {
     
     setIsUpdating(true);
     try {
+      const countryToSave = country === 'not_specified' ? null : country;
       const { error } = await supabase
         .from('profiles')
         .update({ 
           name,
-          country 
+          country: countryToSave,
+          status
         })
         .eq('id', user.id);
         
@@ -167,6 +173,9 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
+          {user?.status && (
+            <p className="text-sm text-muted-foreground mt-1">{user.status}</p>
+          )}
         </div>
       </div>
       
@@ -184,6 +193,18 @@ const ProfilePage: React.FC = () => {
         </div>
         
         <div>
+          <label htmlFor="status" className="block text-sm font-medium mb-1">
+            Status
+          </label>
+          <Input
+            id="status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            placeholder="What's on your mind?"
+          />
+        </div>
+        
+        <div>
           <label htmlFor="country" className="block text-sm font-medium mb-1">
             Country
           </label>
@@ -192,7 +213,7 @@ const ProfilePage: React.FC = () => {
               <SelectValue placeholder="Select your country" />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              <SelectItem value="">Not specified</SelectItem>
+              <SelectItem value="not_specified">Not specified</SelectItem>
               {countries.map(country => (
                 <SelectItem key={country.code} value={country.name}>
                   {country.emoji} {country.name}

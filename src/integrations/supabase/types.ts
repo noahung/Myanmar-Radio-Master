@@ -17,6 +17,7 @@ export type Database = {
           id: string
           name: string | null
           updated_at: string | null
+          status?: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -25,6 +26,7 @@ export type Database = {
           id: string
           name?: string | null
           updated_at?: string | null
+          status?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -33,12 +35,13 @@ export type Database = {
           id?: string
           name?: string | null
           updated_at?: string | null
+          status?: string | null
         }
         Relationships: []
       }
       radio_stations: {
         Row: {
-          category: string
+          category: string[]
           created_at: string | null
           description: string | null
           id: string
@@ -50,7 +53,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          category: string
+          category: string[]
           created_at?: string | null
           description?: string | null
           id?: string
@@ -62,7 +65,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          category?: string
+          category?: string[]
           created_at?: string | null
           description?: string | null
           id?: string

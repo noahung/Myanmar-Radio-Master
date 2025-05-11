@@ -1,11 +1,10 @@
-
 export interface RadioStation {
   id: string;
   name: string;
   streamUrl: string;
   imageUrl?: string;
   description?: string;
-  category: string;
+  category: string[];
   isFeatured?: boolean;
   listeners?: number;
 }
@@ -18,6 +17,7 @@ export interface User {
   role?: string;
   favorites?: string[];
   country?: string;
+  status?: string;
 }
 
 export interface StationComment {
