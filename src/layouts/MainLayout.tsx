@@ -1,10 +1,11 @@
-
 import React from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Player } from '@/components/Player';
 import { useAppContext } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import BottomNavBar from '@/components/BottomNavBar';
+import MiniPlayer from '@/components/MiniPlayer';
 
 export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentStation } = useAppContext();
@@ -25,6 +26,8 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         
         {currentStation && <Player />}
       </main>
+      <MiniPlayer />
+      <BottomNavBar />
     </div>
   );
 };
